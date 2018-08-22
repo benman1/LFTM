@@ -41,7 +41,7 @@ public class WordVectors {
                 if (MatrixOps.absNorm(wordVectors[i]) == 0.0) {
                     System.out.println("The word \"" + id2WordVocabulary.get(i)
                             + "\" doesn't have a corresponding vector!!!");
-                    throw new Exception();
+                    // throw new Exception();
                 }
             }
             return wordVectors;
