@@ -19,6 +19,7 @@ import cc.mallet.optimize.InvalidOptimizableException;
 import cc.mallet.optimize.Optimizer;
 import cc.mallet.types.MatrixOps;
 import cc.mallet.util.Randoms;
+import utility.WordVectors;
 
 /**
  * Implementation of the LF-DMM latent feature topic model, using collapsed Gibbs sampling, as
@@ -210,14 +211,13 @@ public class LFDMM
         // alphaSum = numTopics * alpha;
         betaSum = vocabularySize * beta;
 
-        readWordVectorsFile(vectorFilePath);
+        wordVectors = WordVectors.readWordVectorsFile(vectorFilePath, word2IdVocabulary, id2WordVocabulary);
         topicVectors = new double[numTopics][vectorSize];
         dotProductValues = new double[numTopics][vocabularySize];
         expDotProductValues = new double[numTopics][vocabularySize];
         sumExpValues = new double[numTopics];
 
-        System.out
-                .println("Corpus size: " + numDocuments + " docs, " + numWordsInCorpus + " words");
+        System.out.println("Corpus size: " + numDocuments + " docs, " + numWordsInCorpus + " words");
         System.out.println("Vocabuary size: " + vocabularySize);
         System.out.println("Number of topics: " + numTopics);
         System.out.println("alpha: " + alpha);
@@ -236,46 +236,6 @@ public class LFDMM
 
     }
 
-    public void readWordVectorsFile(String pathToWordVectorsFile)
-        throws Exception
-    {
-        System.out.println("Reading word vectors from word-vectors file " + pathToWordVectorsFile
-                + "...");
-
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(pathToWordVectorsFile));
-            String[] elements = br.readLine().trim().split("\\s+");
-            vectorSize = elements.length - 1;
-            wordVectors = new double[vocabularySize][vectorSize];
-            String word = elements[0];
-            if (word2IdVocabulary.containsKey(word)) {
-                for (int j = 0; j < vectorSize; j++) {
-                    wordVectors[word2IdVocabulary.get(word)][j] = new Double(elements[j + 1]);
-                }
-            }
-            for (String line; (line = br.readLine()) != null;) {
-                elements = line.trim().split("\\s+");
-                word = elements[0];
-                if (word2IdVocabulary.containsKey(word)) {
-                    for (int j = 0; j < vectorSize; j++) {
-                        wordVectors[word2IdVocabulary.get(word)][j] = new Double(elements[j + 1]);
-                    }
-                }
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        for (int i = 0; i < vocabularySize; i++) {
-            if (MatrixOps.absNorm(wordVectors[i]) == 0.0) {
-                System.out.println("The word \"" + id2WordVocabulary.get(i)
-                        + "\" doesn't have a corresponding vector!!!");
-                throw new Exception();
-            }
-        }
-    }
 
     public void initialize()
         throws IOException
@@ -716,7 +676,7 @@ public class LFDMM
     public static void main(String args[])
         throws Exception
     {
-        LFDMM lfdmm = new LFDMM("test/corpus.txt", "test/wordVectors.txt", 4, 0.1, 0.01, 0.6, 2000,
+        LFDMM lfdmm = new LFDMM("test/corpus.txt", "test//wordwordVectors.txt", 4, 0.1, 0.01, 0.6, 2000,
                 200, 20, "testLFDMM");
         lfdmm.writeParameters();
         lfdmm.inference();

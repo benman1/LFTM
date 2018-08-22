@@ -4,10 +4,10 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
  
-  <groupId>java-nlp</groupId>
-  <artifactId>LFTM</artifactId>
-  <version>1.0</version>
-  <packaging>jar</packaging>
+    <groupId>java-nlp</groupId>
+    <artifactId>LFTM</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
 
     <name>LFTM</name>
     <url>http://maven.apache.org</url>
