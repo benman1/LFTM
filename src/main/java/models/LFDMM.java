@@ -397,7 +397,6 @@ public class LFDMM
 
         Parallel.loop(numTopics, new Parallel.LoopInt()
         {
-            @Override
             public void compute(int topic)
             {
                 int rate = 1;

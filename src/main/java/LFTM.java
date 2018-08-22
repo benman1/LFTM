@@ -5,7 +5,6 @@ import models.LFLDA_Inf;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-
 import utility.CmdArgs;
 import eval.ClusteringEval;
 
@@ -24,8 +23,10 @@ public class LFTM
 {
 	public static void main(String[] args)
 	{
-		CmdArgs cmdArgs = new CmdArgs();
-		CmdLineParser parser = new CmdLineParser(cmdArgs);
+
+        CmdArgs cmdArgs = new CmdArgs();
+        CmdLineParser parser = new CmdLineParser(cmdArgs);
+
 		try {
 
 			parser.parseArgument(args);
