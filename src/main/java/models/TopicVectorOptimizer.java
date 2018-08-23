@@ -40,15 +40,13 @@ public class TopicVectorOptimizer implements Optimizable.ByGradientValue {
 		l2Constant = inL2Constant;
 
 		topicVector = new double[vectorSize];
-		System
-			.arraycopy(inTopicVector, 0, topicVector, 0, inTopicVector.length);
+		System.arraycopy(inTopicVector, 0, topicVector, 0, inTopicVector.length);
 
 		wordCount = new int[vocaSize];
 		System.arraycopy(inWordCount, 0, wordCount, 0, vocaSize);
 		wordVectors = new double[vocaSize][vectorSize];
 		for (int w = 0; w < vocaSize; w++)
-			System
-				.arraycopy(inWordVectors[w], 0, wordVectors[w], 0, vectorSize);
+			System.arraycopy(inWordVectors[w], 0, wordVectors[w], 0, vectorSize);
 
 		totalCount = 0;
 		for (int w = 0; w < vocaSize; w++) {
