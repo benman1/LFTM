@@ -142,12 +142,14 @@ public class LFDMM
         orgExpName = expName;
         vectorFilePath = pathToWordVectorsFile;
         corpusPath = pathToCorpus;
-        folderPath = pathToCorpus.substring(0,
-                Math.max(pathToCorpus.lastIndexOf("/"), pathToCorpus.lastIndexOf("\\")) + 1);
+        folderPath = pathToCorpus.substring(
+                0,
+                Math.max(pathToCorpus.lastIndexOf("/"), pathToCorpus.lastIndexOf("\\")) + 1
+        );
 
         System.out.println("Reading topic modeling corpus: " + pathToCorpus);
-
         wordVectors = new WordVectors(pathToCorpus, pathToWordVectorsFile);
+
         docTopicCount = new int[numTopics];
         topicWordCountDMM = new int[numTopics][wordVectors.getVocabularySize()];
         sumTopicWordCountDMM = new int[numTopics];
@@ -168,8 +170,6 @@ public class LFDMM
         expDotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         sumExpValues = new double[numTopics];
 
-        System.out.println("Corpus size: " + wordVectors.getNumDocuments() + " docs, " + wordVectors.getNumWordsInCorpus() + " words");
-        System.out.println("Vocabuary size: " + wordVectors.getVocabularySize());
         System.out.println("Number of topics: " + numTopics);
         System.out.println("alpha: " + alpha);
         System.out.println("beta: " + beta);
@@ -192,10 +192,10 @@ public class LFDMM
         throws IOException
     {
         System.out.println("Randomly initialzing topic assignments ...");
-        topicAssignments = new ArrayList<List<Integer>>();
+        topicAssignments = new ArrayList<>();
 
         for (int docId = 0; docId < wordVectors.getNumDocuments(); docId++) {
-            List<Integer> topics = new ArrayList<Integer>();
+            List<Integer> topics = new ArrayList<>();
             int topic = FuncUtils.nextDiscrete(multiPros);
             docTopicCount[topic] += 1;
             int docSize = wordVectors.getCorpus().get(docId).size();
@@ -223,9 +223,9 @@ public class LFDMM
     {
         System.out.println("Reading topic-assignment file: " + pathToTopicAssignmentFile);
 
-        topicAssignments = new ArrayList<List<Integer>>();
+        topicAssignments = new ArrayList<>();
 
-        BufferedReader br = null;
+        BufferedReader br;
         try {
             br = new BufferedReader(new FileReader(pathToTopicAssignmentFile));
             int docId = 0;
@@ -270,8 +270,9 @@ public class LFDMM
         System.out.println("Running Gibbs sampling inference: ");
 
         for (int iter = 1; iter <= numInitIterations; iter++) {
-            if((iter+1) % 100 == 0) {
+            if((iter % 100) == 0) {
                 System.out.println("\tInitial sampling iteration: " + (iter));
+                System.out.println("\t\tEstimating topic vectors ...");
             }
             sampleSingleInitialIteration();
         }
@@ -279,6 +280,7 @@ public class LFDMM
         for (int iter = 1; iter <= numIterations; iter++) {
             if((iter+1) % 100 == 0) {
                 System.out.println("\tLFDMM sampling iteration: " + (iter));
+                System.out.println("\t\tEstimating topic vectors ...");
             }
             optimizeTopicVectors();
 
@@ -301,7 +303,6 @@ public class LFDMM
 
     public void optimizeTopicVectors()
     {
-        System.out.println("\t\tEstimating topic vectors ...");
         sumExpValues = new double[numTopics];
         dotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         expDotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
@@ -628,7 +629,7 @@ public class LFDMM
     public static void main(String args[])
         throws Exception
     {
-        LFDMM lfdmm = new LFDMM("test/corpus.txt", "test//wordwordVectors.txt", 4, 0.1, 0.01, 0.6, 2000,
+        LFDMM lfdmm = new LFDMM("src/test/corpus.txt", "test/wordwordVectors.txt", 4, 0.1, 0.01, 0.6, 2000,
                 200, 20, "testLFDMM");
         lfdmm.writeParameters();
         lfdmm.inference();

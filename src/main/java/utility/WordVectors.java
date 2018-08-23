@@ -133,6 +133,8 @@ public class WordVectors {
                     // throw new Exception();
                 }
             }
+            System.out.println("Corpus size: " + getNumDocuments() + " docs, " + getNumWordsInCorpus() + " words");
+            System.out.println("Vocabulary size: " + getVocabularySize());
         }
         catch (Exception e) {
             e.printStackTrace();

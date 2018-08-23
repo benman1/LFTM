@@ -69,11 +69,12 @@ public class TopicVectorOptimizer implements Optimizable.ByGradientValue {
 		return vectorSize;
 	}
 
-	public void getParameters(double[] buffer)
-	{
-		for (int i = 0; i < vectorSize; i++)
-			buffer[i] = topicVector[i];
-	}
+	public void getParameters(double[] buffer) {
+        if (buffer.length > 0) {
+            for (int i = 0; i < vectorSize; i++)
+                buffer[i] = topicVector[i];
+        }
+    }
 
 	public double getParameter(int index)
 	{

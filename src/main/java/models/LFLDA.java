@@ -170,8 +170,6 @@ public class LFLDA
         expDotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         sumExpValues = new double[numTopics];
 
-        System.out.println("Corpus size: " + wordVectors.getNumDocuments() + " docs, " + wordVectors.getNumWordsInCorpus() + " words");
-        System.out.println("Vocabuary size: " + wordVectors.getVocabularySize());
         System.out.println("Number of topics: " + numTopics);
         System.out.println("alpha: " + alpha);
         System.out.println("beta: " + beta);
