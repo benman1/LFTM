@@ -188,9 +188,7 @@ public class LFDMM
     }
 
 
-    public void initialize()
-        throws IOException
-    {
+    public void initialize() {
         System.out.println("Randomly initialzing topic assignments ...");
         topicAssignments = new ArrayList<>();
 
@@ -218,9 +216,7 @@ public class LFDMM
         }
     }
 
-    public void initialize(String pathToTopicAssignmentFile)
-        throws Exception
-    {
+    public void initialize(String pathToTopicAssignmentFile) {
         System.out.println("Reading topic-assignment file: " + pathToTopicAssignmentFile);
 
         topicAssignments = new ArrayList<>();
@@ -307,11 +303,13 @@ public class LFDMM
         dotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         expDotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
 
-        //Parallel.loop(numTopics, new Parallel.LoopInt()
-        //{
-            //public void compute(int topic)
-        for(int topic=0; topic<numTopics; topic++)
+        Parallel.loop(numTopics, new Parallel.LoopInt()
+        {
+            @Override
+            public void compute(int topic)
             {
+                //for(int topic=0; topic<numTopics; topic++) {
+
                 int rate = 1;
                 boolean check = true;
                 while (check) {
@@ -347,7 +345,7 @@ public class LFDMM
                     rate = rate * 10;
                 }
             }
-        //});
+        });
     }
 
     public void sampleSingleIteration()
