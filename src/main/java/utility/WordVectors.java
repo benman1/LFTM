@@ -10,6 +10,12 @@ import java.util.List;
 
 public class WordVectors {
 
+    public int getVectorSize() {
+        return vectorSize;
+    }
+
+    private int vectorSize;
+
     public HashMap<String, Integer> getWord2IdVocabulary() {
         return word2IdVocabulary;
     }
@@ -108,7 +114,7 @@ public class WordVectors {
         try {
             br = new BufferedReader(new FileReader(pathToWordVectorsFile));
             String[] elements = br.readLine().trim().split("\\s+");
-            int vectorSize = elements.length - 1;
+            this.vectorSize = elements.length - 1;
             this.wordVectors = new double[vocabularySize][vectorSize];
             String word = elements[0];
             if (word2IdVocabulary.containsKey(word)) {

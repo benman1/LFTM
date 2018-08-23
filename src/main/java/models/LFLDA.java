@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,6 @@ import utility.LBFGS;
 import utility.Parallel;
 import cc.mallet.optimize.InvalidOptimizableException;
 import cc.mallet.optimize.Optimizer;
-import cc.mallet.types.MatrixOps;
 import utility.WordVectors;
 
 /**
@@ -31,63 +29,20 @@ import utility.WordVectors;
  * @author Dat Quoc Nguyen
  */
 
-public class LFLDA
+public class LFLDA extends TopicModel
 {
+    private final int[] sumDocTopicCount;
     public double alpha; // Hyper-parameter alpha
     public double beta; // Hyper-parameter alpha
     public double alphaSum; // alpha * numTopics
-    public double betaSum; // beta * wordVectors.getVocabularySize()
-
-    public int numTopics; // Number of topics
-    public int topWords; // Number of most probable words for each topic
-
-    public double lambda; // Mixture weight value
-    public int numInitIterations;
-    public int numIterations; // Number of EM-style sampling iterations
-
-    // wordVectors.getNumDocuments() * numTopics matrix
-    // Given a document: number of its words assigned to each topic
-    public int[][] docTopicCount;
-    // Number of words in every document
-    public int[] sumDocTopicCount;
-    // numTopics * wordVectors.getVocabularySize() matrix
-    // Given a topic: number of times a word type generated from the topic by
-    // the Dirichlet multinomial component
-    public int[][] topicWordCountLDA;
-    // Total number of words generated from each topic by the Dirichlet
-    // multinomial component
-    public int[] sumTopicWordCountLDA;
-    // numTopics * wordVectors.getVocabularySize() matrix
-    // Given a topic: number of times a word type generated from the topic by
-    // the latent feature component
-    public int[][] topicWordCountLF;
-    // Total number of words generated from each topic by the latent feature
-    // component
-    public int[] sumTopicWordCountLF;
-
-    // Double array used to sample a topic
-    public double[] multiPros;
-    // Path to the directory containing the corpus
-    public String folderPath;
-    // Path to the topic modeling corpus
-    public String corpusPath;
-    public String vectorFilePath;
 
     public WordVectors wordVectors; // Vector representations for words
-    public double[][] topicVectors;// Vector representations for topics
-    public int vectorSize; // Number of vector dimensions
-    public double[][] dotProductValues;
-    public double[][] expDotProductValues;
-    public double[] sumExpValues; // Partition function values
-
-    public final double l2Regularizer = 0.01; // L2 regularizer value for learning topic vectors
-    public final double tolerance = 0.05; // Tolerance value for LBFGS convergence
 
     public String expName = "LFLDA";
     public String orgExpName = "LFLDA";
     public String tAssignsFilePath = "";
     public int savestep = 0;
-    private ArrayList<List<Integer>> topicAssignments;
+    private int[][] docTopicCount;
 
     public LFLDA(String pathToCorpus, String pathToWordVectorsFile, int inNumTopics,
             double inAlpha, double inBeta, double inLambda, int inNumInitIterations,
@@ -152,8 +107,8 @@ public class LFLDA
 
         docTopicCount = new int[wordVectors.getNumDocuments()][numTopics];
         sumDocTopicCount = new int[wordVectors.getNumDocuments()];
-        topicWordCountLDA = new int[numTopics][wordVectors.getVocabularySize()];
-        sumTopicWordCountLDA = new int[numTopics];
+        topicWordCount = new int[numTopics][wordVectors.getVocabularySize()];
+        sumTopicWordCount = new int[numTopics];
         topicWordCountLF = new int[numTopics][wordVectors.getVocabularySize()];
         sumTopicWordCountLF = new int[numTopics];
 
@@ -165,7 +120,7 @@ public class LFLDA
         alphaSum = numTopics * alpha;
         betaSum = wordVectors.getVocabularySize() * beta;
 
-        topicVectors = new double[numTopics][vectorSize];
+        topicVectors = new double[numTopics][wordVectors.getVectorSize()];
         dotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         expDotProductValues = new double[numTopics][wordVectors.getVocabularySize()];
         sumExpValues = new double[numTopics];
@@ -206,8 +161,8 @@ public class LFLDA
                     sumTopicWordCountLF[topic] += 1;
                 }
                 else {// Generated from the Dirichlet multinomial component
-                    topicWordCountLDA[topic][wordId] += 1;
-                    sumTopicWordCountLDA[topic] += 1;
+                    topicWordCount[topic][wordId] += 1;
+                    sumTopicWordCount[topic] += 1;
                 }
                 docTopicCount[docId][topic] += 1;
                 sumDocTopicCount[docId] += 1;
@@ -243,8 +198,8 @@ public class LFLDA
                         sumTopicWordCountLF[topic] += 1;
                     }
                     else {// Generated from the Dirichlet multinomial component
-                        topicWordCountLDA[topic][wordId] += 1;
-                        sumTopicWordCountLDA[topic] += 1;
+                        topicWordCount[topic][wordId] += 1;
+                        sumTopicWordCount[topic] += 1;
                     }
                     docTopicCount[docId][topic] += 1;
                     sumDocTopicCount[docId] += 1;
@@ -368,8 +323,8 @@ public class LFLDA
                     sumTopicWordCountLF[topic] -= 1;
                 }
                 else {
-                    topicWordCountLDA[topic][word] -= 1;
-                    sumTopicWordCountLDA[topic] -= 1;
+                    topicWordCount[topic][word] -= 1;
+                    sumTopicWordCount[topic] -= 1;
                 }
 
                 // Sample a pair of topic z and binary indicator variable s
@@ -379,8 +334,8 @@ public class LFLDA
                             * expDotProductValues[tIndex][word] / sumExpValues[tIndex];
 
                     multiPros[tIndex + numTopics] = (docTopicCount[dIndex][tIndex] + alpha)
-                            * (1 - lambda) * (topicWordCountLDA[tIndex][word] + beta)
-                            / (sumTopicWordCountLDA[tIndex] + betaSum);
+                            * (1 - lambda) * (topicWordCount[tIndex][word] + beta)
+                            / (sumTopicWordCount[tIndex] + betaSum);
 
                 }
                 subtopic = FuncUtils.nextDiscrete(multiPros);
@@ -392,8 +347,8 @@ public class LFLDA
                     sumTopicWordCountLF[topic] += 1;
                 }
                 else {
-                    topicWordCountLDA[topic][word] += 1;
-                    sumTopicWordCountLDA[topic] += 1;
+                    topicWordCount[topic][word] += 1;
+                    sumTopicWordCount[topic] += 1;
                 }
                 // Update topic assignments
                 topicAssignments.get(dIndex).set(wIndex, subtopic);
@@ -416,8 +371,8 @@ public class LFLDA
                     sumTopicWordCountLF[topic] -= 1;
                 }
                 else { // LDA(w|t) + LDA(t|d)
-                    topicWordCountLDA[topic][word] -= 1;
-                    sumTopicWordCountLDA[topic] -= 1;
+                    topicWordCount[topic][word] -= 1;
+                    sumTopicWordCount[topic] -= 1;
                 }
 
                 // Sample a pair of topic z and binary indicator variable s
@@ -428,8 +383,8 @@ public class LFLDA
                             / (sumTopicWordCountLF[tIndex] + betaSum);
 
                     multiPros[tIndex + numTopics] = (docTopicCount[dIndex][tIndex] + alpha)
-                            * (1 - lambda) * (topicWordCountLDA[tIndex][word] + beta)
-                            / (sumTopicWordCountLDA[tIndex] + betaSum);
+                            * (1 - lambda) * (topicWordCount[tIndex][word] + beta)
+                            / (sumTopicWordCount[tIndex] + betaSum);
 
                 }
                 subtopic = FuncUtils.nextDiscrete(multiPros);
@@ -441,8 +396,8 @@ public class LFLDA
                     sumTopicWordCountLF[topic] += 1;
                 }
                 else {
-                    topicWordCountLDA[topic][word] += 1;
-                    sumTopicWordCountLDA[topic] += 1;
+                    topicWordCount[topic][word] += 1;
+                    sumTopicWordCount[topic] += 1;
                 }
                 // Update topic assignments
                 topicAssignments.get(dIndex).set(wIndex, subtopic);
@@ -521,7 +476,7 @@ public class LFLDA
         BufferedWriter writer = new BufferedWriter(new FileWriter(folderPath + expName
                 + ".topicVectors"));
         for (int i = 0; i < numTopics; i++) {
-            for (int j = 0; j < vectorSize; j++)
+            for (int j = 0; j < wordVectors.getVectorSize(); j++)
                 writer.write(topicVectors[i][j] + " ");
             writer.write("\n");
         }
@@ -535,14 +490,14 @@ public class LFLDA
                 + ".topWords"));
 
         for (int tIndex = 0; tIndex < numTopics; tIndex++) {
-            writer.write("Topic" + new Integer(tIndex) + ":");
+            writer.write("Topic" + tIndex + ":");
 
             Map<Integer, Double> topicWordProbs = new TreeMap<Integer, Double>();
             for (int wIndex = 0; wIndex < wordVectors.getVocabularySize(); wIndex++) {
 
                 double pro = lambda * expDotProductValues[tIndex][wIndex] / sumExpValues[tIndex]
-                        + (1 - lambda) * (topicWordCountLDA[tIndex][wIndex] + beta)
-                        / (sumTopicWordCountLDA[tIndex] + betaSum);
+                        + (1 - lambda) * (topicWordCount[tIndex][wIndex] + beta)
+                        / (sumTopicWordCount[tIndex] + betaSum);
 
                 topicWordProbs.put(wIndex, pro);
             }
@@ -571,7 +526,7 @@ public class LFLDA
         for (int t = 0; t < numTopics; t++) {
             for (int w = 0; w < wordVectors.getVocabularySize(); w++) {
                 double pro = lambda * expDotProductValues[t][w] / sumExpValues[t] + (1 - lambda)
-                        * (topicWordCountLDA[t][w] + beta) / (sumTopicWordCountLDA[t] + betaSum);
+                        * (topicWordCount[t][w] + beta) / (sumTopicWordCount[t] + betaSum);
                 writer.write(pro + " ");
             }
             writer.write("\n");
